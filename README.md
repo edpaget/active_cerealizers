@@ -23,7 +23,7 @@ Or install it yourself as:
 ## Usage
 
 ```ruby
-Class MealSerializer < ActiveCerealizer::Resource
+class MealSerializer < ActiveCerealizer::Resource
   attributes :id, :type, :href, :name, :time
 
   links_many :food, polymorphic: true, required_for: [:create, :update]
