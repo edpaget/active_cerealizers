@@ -1,6 +1,6 @@
 # ActiveCerealizer
 
-![http://i.walmartimages.com/i/p/00/03/00/00/31/0003000031207_500X500.jpg]
+![Sugary!](http://i.walmartimages.com/i/p/00/03/00/00/31/0003000031207_500X500.jpg)
 
 Part of a Balanced Breakfast!
 
