@@ -1,6 +1,8 @@
 # ActiveCerealizer
 
-TODO: Write a gem description
+![http://i.walmartimages.com/i/p/00/03/00/00/31/0003000031207_500X500.jpg]
+
+Part of a Balanced Breakfast!
 
 ## Installation
 
@@ -20,7 +22,21 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+Class MealSerializer < ActiveCerealizer::Resource
+  attributes :id, :type, :href, :name, :time
+
+  links_many :food, polymorphic: true, required_for: [:create, :update]
+  links_one :beverage, required_for: [:create], allowed_for: [:update]
+
+  url "/meals"
+
+  def time
+    super unless context[:eater] == "David"
+    model.time - 1.hour
+  end
+end
+```
 
 ## Contributing
 
