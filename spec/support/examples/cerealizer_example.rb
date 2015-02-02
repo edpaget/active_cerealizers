@@ -1,5 +1,5 @@
 module Examples
-  class Cereal < ActiveCerealizer::Resource
+  class CerealSerializer < ActiveCerealizer::Resource
     attributes :id, :type, :href, :name
 
     attribute :secret_formula, type: :object, unless: :permitted?, do

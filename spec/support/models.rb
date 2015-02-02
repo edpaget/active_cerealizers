@@ -1,13 +1,17 @@
 ActiveRecord::Base.connection.create_table :meals, force: true do |t|
+  t.string :name
   t.integer :food_id
   t.string :food_type
   t.integer :beverage_id
 end
 
 ActiveRecord::Base.connection.create_table :beverages, force: true do |t|
+  t.string :name
 end
 
 ActiveRecord::Base.connection.create_table :cereals, force: true do |t|
+  t.string :brand
+  t.string :name
 end
 
 ActiveRecord::Base.connection.create_table :sandwiches, force: true do |t|
