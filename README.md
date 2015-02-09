@@ -1,4 +1,4 @@
-# ActiveCerealizer
+# ActiveCerealizer [![Build Status](https://travis-ci.org/edpaget/active_cerealizers.svg)](https://travis-ci.org/edpaget/active_cerealizers)
 
 ![Sugary!](http://i.walmartimages.com/i/p/00/03/00/00/31/0003000031207_500X500.jpg)
 
