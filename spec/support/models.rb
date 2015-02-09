@@ -11,7 +11,7 @@ end
 
 ActiveRecord::Base.connection.create_table :cereals, force: true do |t|
   t.string :brand
-  t.string :name
+  t.string :slogan
 end
 
 ActiveRecord::Base.connection.create_table :sandwiches, force: true do |t|

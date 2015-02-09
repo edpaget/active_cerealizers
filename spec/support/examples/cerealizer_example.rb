@@ -1,8 +1,10 @@
+require 'active_cerealizer/resource'
+
 module Examples
   class CerealSerializer < ActiveCerealizer::Resource
-    attributes :id, :type, :href, :name
+    attributes :brand, :slogan
 
-    attribute :secret_formula, type: :object, unless: :permitted?, do
+    attribute :secret_formula, type: :object, if: :permitted? do
       {
         "High Fructose Corn Syrup" => "1 Part",
         "Human Hair" => "2 Pars",
@@ -10,13 +12,12 @@ module Examples
       }
     end
 
-    url :breakfast, :cereals
+    links_many :meals
 
-    links_one :bowl, permitted_for: [:create, :update], required: true
-    links_many :milks, polymorphic: true, permitted_for: [:create], required: false
+    url :cereals
 
-    def name
-      super unless context[:mighty_thor]
+    def slogan
+      return super unless context[:mighty_thor]
       "MJOLNIR IS FOR BREAKFAST"
     end
 
