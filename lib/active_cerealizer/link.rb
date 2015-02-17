@@ -4,7 +4,7 @@ module ActiveCerealizer
   class Link
     include Serialized
 
-    attr_reader :key, :relation, :model_class
+    attr_reader :key, :relation, :model_class, :association, :polymorphic
     
     DEFAULTS = {
       unless: nil,
@@ -23,14 +23,14 @@ module ActiveCerealizer
       @key = opts.delete(:key) || relation
       @association = model_class.reflect_on_association(relation)
       @unless, @if, @include, @required, @permitted, @many, @polymoprhic =
-                                                     DEFAULTS.merge(opts)
-                                                             .values_at(:unless,
-                                                                        :if,
-                                                                        :include,
-                                                                        :required,
-                                                                        :permitted,
-                                                                        :many,
-                                                                        :polymorphic)
+                                                            DEFAULTS.merge(opts)
+                                                              .values_at(:unless,
+                                                                         :if,
+                                                                         :include,
+                                                                         :required,
+                                                                         :permitted,
+                                                                         :many,
+                                                                         :polymorphic)
       @block = block
     end
 
@@ -56,24 +56,28 @@ module ActiveCerealizer
     end
 
     def fetch(serializer)
-      if @block
-        @block.call(serializer.model, serializer.context)
-      else
-        links = @model_adapter.fetch(serializer.model, @association, @polymorphic)
-        @many ? links.map{ |link| link_response(link) } : link_response(link)
-      end
+      links = if @block
+                @block.call(serializer.model, serializer.context)
+              elsif serializer.respond_to?(relation)
+                serializer.send(relation)
+              else
+                @model_adapter.fetch(serializer.model, self) 
+              end
+      @many ? links.map{ |link| link_response(link) } : link_response(link)
     end
 
-    def link_response((id, klass))
-      return id unless klass
-      polymorphic_response(id, klass)
+    def link_response((id, type, href))
+      return id unless type 
+      polymorphic_response(id, type, href)
     end
 
-    def polymorphic_response(id, klass)
+    def polymorphic_response(id, type, href)
+      type = type.is_a?(Class) ? to_type_name(type) : type
+      href ||= linked_serializer(type).url_for(id)
       {
         id: id,
-        type: to_type_name(klass),
-        href: linked_serializer(klass).url_for(id)
+        type: type,
+        href: href
       }
     end
     
@@ -83,7 +87,7 @@ module ActiveCerealizer
         .underscore
         .pluralize
     end
-      
+    
     def linked_serializer(klass)
       ActiveCerealizer.resource_for_model(klass)
     end

@@ -67,7 +67,7 @@ module ActiveCerealizer
       elsif serializer.respond_to?(field)
         serializer.send(field)
       else
-        serializer.model.send(field)
+        serializer.model.attributes[field.to_s]
       end
     end
   end

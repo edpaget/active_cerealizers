@@ -9,6 +9,20 @@ module ActiveCerealizer
 
     class << self
       attr_reader :attrs, :links
+
+      def serialize(models, ctx={})
+        page, per_page = ctx.delete(:page, :per_page)
+        include = ctx.delete(:include)
+        {
+          @key => models.map{ |model| Resource.new(model, ctx) }.map(&:serialize),
+          meta: {},
+          links: serialize_links
+        }
+      end
+
+      def serialize_links
+        links.map(&:template).reduce(&:merge)
+      end
       
       def attribute(field, opts={}, &block)
         @attrs ||= []
@@ -32,7 +46,7 @@ module ActiveCerealizer
       def links_one(relation, opts={}, &block)
         @links ||= []
         opts[:many] = false
-        @links.push(Link.new(relation, model, get_adapter, **opts, &block))
+        @links.push(Link.new(relation, model, get_adapter(model), **opts, &block))
       end
 
       def links_many(relation, opts={}, &block)
@@ -47,6 +61,10 @@ module ActiveCerealizer
 
       def url(*url)
         @url = url.map(&:to_s)
+      end
+
+      def key(key)
+        @key = key
       end
 
       def model
@@ -74,11 +92,9 @@ module ActiveCerealizer
     end
 
     def serialize
-      @serialized = serialized.merge({
-                                       id: model.id.to_s,
-                                       href: self.class.url_for(model, model.id),
-                                       type: self.class.model.model_name.plural
-                                     })
+      @serialized = serialized.merge({id: model.id.to_s,
+                                      href: self.class.url_for(model, model.id),
+                                      type: self.class.model.model_name.plural})
       
       attrs.each do |attr|
         attr.serialize(self)

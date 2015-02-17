@@ -20,6 +20,25 @@ RSpec.describe ActiveCerealizer::Resource do
       slogan: "Its fucking good for you",
     }
   end
+
+  describe "::serialize" do
+    it 'should serialize all the models in the collection' do
+    end
+
+    it 'should page the models' do
+    end
+
+    it 'should include paging metadata' do
+    end
+
+    it 'should include link templates' do
+    end
+
+    context 'when a link has the :no_template option' do
+      it 'should not be included' do
+      end
+    end
+  end
   
   describe "#serialize" do
     context "when there are no links" do
