@@ -14,10 +14,10 @@ module Examples
 
     links_many :meals
 
-    url :cereals
+    location :cereals
 
     def slogan
-      return super unless context[:mighty_thor]
+      return @model.slogan unless context[:mighty_thor]
       "MJOLNIR IS FOR BREAKFAST"
     end
 

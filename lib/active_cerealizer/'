@@ -6,15 +6,19 @@ module ActiveCerealizer
 
     attr_reader :key, :relation
     
-    def initialize(relation, adapter, opts={})
+    def initialize(relation,
+                   adapter,
+                   block=nil,
+                   when_not=nil,
+                   permitted=nil,
+                   required=nil,
+                   key=relation)
       @relation = relation
       @adapter = adapter
-      @block = opts[:block]
-      @permitted = opts[:permitted]
-      @required = opts[:required]
-      @key = opts[:key] || relation
-      @if = opts[:serialize_when]
-      @unless = opts[:serialize_when_not]
+      @block = block
+      @permitted = permitted 
+      @required = required
+      @key = key
     end
 
     def as_schema_property(schema_links, action)
@@ -26,10 +30,6 @@ module ActiveCerealizer
       serializer.serialized[:links][key] = fetch(serializer) if conditional?(serializer)
     end
 
-    def polymorphic?
-      false
-    end
-      
     private
 
     def can_include?
@@ -42,7 +42,7 @@ module ActiveCerealizer
       elsif serializer.respond_to?(relation)
         serializer.send(relation)
       else
-        @adapter.fetch(serializer.model, self) 
+        @model_adapter.fetch(serializer.model, self) 
       end
     end
 

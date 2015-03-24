@@ -32,15 +32,13 @@ module ActiveCerealizer
     end
 
     def as_schema_property(schema, action)
-      super do
-        schema_type = @array ? :array : type
-        proc = if @schema
-                 @schema
-               elsif @array
-                 proc { items type: type }
-               end
-        schema.add(schema_type, field, required: required?(action), &proc)
-      end
+      schema_type = @array ? :array : type
+      proc = if @schema
+               @schema
+             elsif @array
+               proc { items type: type }
+             end
+      schema.add(schema_type, field, required: required?(action), &proc)
     end
     
     def serialize(serializer)
@@ -48,7 +46,7 @@ module ActiveCerealizer
     end
 
     private
-   
+    
     def reflect_on_columns
       col = model_class.columns.find{ |col| col.name == field.to_s }
       if col.try(:array)
@@ -67,7 +65,7 @@ module ActiveCerealizer
       elsif serializer.respond_to?(field)
         serializer.send(field)
       else
-        serializer.model.attributes[field.to_s]
+        serializer.model.send(field.to_s)
       end
     end
   end

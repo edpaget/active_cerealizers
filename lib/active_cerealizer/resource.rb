@@ -1,15 +1,18 @@
 require 'active_cerealizer/attribute'
-require 'active_cerealizer/link'
+require 'active_cerealizer/links/one'
+require 'active_cerealizer/links/many'
+require 'active_cerealizer/links/dsl'
+require 'active_cerealizer/location'
 require 'active_cerealizer/adapters/active_record'
 
 module ActiveCerealizer
   class Resource
-    extend ResourceDSL
-    
     attr_accessor :serialized
     attr_reader :model, :context
 
-    self << class
+    class << self 
+      attr_reader :attrs, :links
+      
       def serialize(models, ctx={})
         page, per_page = ctx.delete(:page, :per_page)
         include = ctx.delete(:include)
@@ -22,6 +25,48 @@ module ActiveCerealizer
       
       def model
         self.to_s.demodulize.gsub('Serializer', '').constantize
+      end
+      
+      def serialize_links
+        links.map(&:template).reduce(&:merge)
+      end
+      
+      def attribute(field, opts={}, &block)
+        @attrs ||= []
+        @attrs.push(Attribute.new(field, model, **opts, &block))
+      end
+
+      def attributes(*attrs)
+        attrs.each do |(field, opts)|
+          opts ||= {}
+          attribute(field, **opts)
+        end
+      end
+
+      def links_one(relation, klass=Links::One, &block)
+        @links ||= []
+        link = Links::DSL.new(relation, get_adapter(model), klass)
+        link = link.instance_exec(link, &block) if block_given?
+        @links.push link.build
+      end
+
+      def links_many(relation, klass=Links::Many, &block)
+        @links ||= []
+        link = Links::DSL.new(relation, get_adapter(model), klass)
+        link = link.instance_exec(link, &block) if block_given?
+        @links.push link.build
+      end
+
+      def url_for(id=nil)
+        @url.format(id) 
+      end
+
+      def location(*url)
+        @url = Location.new(url)
+      end
+
+      def key(key)
+        @key = key
       end
 
       def get_adapter(klass)
@@ -46,7 +91,7 @@ module ActiveCerealizer
 
     def serialize
       @serialized = serialized.merge({id: model.id.to_s,
-                                      href: self.class.url_for(model, model.id),
+                                      href: self.class.url_for(model.id),
                                       type: self.class.model.model_name.plural})
       
       attrs.each do |attr|

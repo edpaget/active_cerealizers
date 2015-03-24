@@ -92,38 +92,6 @@ RSpec.describe ActiveCerealizer::Attribute do
       end
     end
     
-    context "attribute is permitted for action" do
-      let(:attribute) do
-        described_class.new :brand, model_class, permitted: :create
-      end
-
-      it { is_expected.to receive(:add) }
-    end
-
-    context "attribute not permitted for action" do
-      let(:attribute) do
-        described_class.new :brand, model_class, permitted: :update
-      end
-      
-      it { is_expected.not_to receive(:add) }
-    end
-
-    context "attribute is permitted for all actions" do
-      let(:attribute) do
-        described_class.new :brand, model_class, permitted: [:create, :update]
-      end
-      
-      it { is_expected.to receive(:add) }
-    end
-
-    context "attribute is has not explicity permitted argument" do
-      let(:attribute) do
-        described_class.new :brand, model_class
-      end
-      
-      it { is_expected.to receive(:add) }
-    end
-
     context "attribute is required for action" do
       let(:attribute) do
         described_class.new :brand, model_class, required: :create

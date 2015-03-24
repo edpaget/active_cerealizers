@@ -1,8 +1,7 @@
 module ActiveCerealizer
   module Serialized
-    def as_schema_property(schema, action)
-      return schema unless permitted?(action)
-      yield 
+    def permitted?(action)
+      test_action(@permitted, action)
     end
 
     private
@@ -17,10 +16,6 @@ module ActiveCerealizer
       end
     end
     
-    def permitted?(action)
-      test_action(@permitted, action)
-    end
-
     def required?(action)
       return false if @required.nil?
       test_action(@required, action)
