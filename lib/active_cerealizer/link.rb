@@ -4,7 +4,7 @@ module ActiveCerealizer
   class Link
     include Serialized
 
-    attr_reader :key, :relation, :model_class, :association, :polymorphic
+    attr_reader :key, :relation, :model_class, :polymorphic
     
     DEFAULTS = {
       unless: nil,
@@ -12,8 +12,6 @@ module ActiveCerealizer
       include: true,
       required: false,
       permitted: true,
-      polymorphic: false,
-      many: true
     }
 
     def initialize(relation, model_class, model_adapter, opts={}, &block)
@@ -21,27 +19,13 @@ module ActiveCerealizer
       @model_class = model_class
       @model_adapter = model_adapter
       @key = opts.delete(:key) || relation
-      @association = model_class.reflect_on_association(relation)
-      @unless, @if, @include, @required, @permitted, @many, @polymoprhic =
-                                                            DEFAULTS.merge(opts)
-                                                              .values_at(:unless,
-                                                                         :if,
-                                                                         :include,
-                                                                         :required,
-                                                                         :permitted,
-                                                                         :many,
-                                                                         :polymorphic)
+      @required = required
+      @permitted = permitted 
       @block = block
     end
 
     def as_schema_property(schema_links, action)
-      super do
-        if @many
-          schema_links.add(:array, key, required: required?(action)) { items type: [:integer, :string] }
-        else
-          schema_links.add(:string, key, required: required?(action))
-        end
-      end
+      raise NotImplementedError
     end
     
     def serialize(serializer)
@@ -56,14 +40,13 @@ module ActiveCerealizer
     end
 
     def fetch(serializer)
-      links = if @block
-                @block.call(serializer.model, serializer.context)
-              elsif serializer.respond_to?(relation)
-                serializer.send(relation)
-              else
-                @model_adapter.fetch(serializer.model, self) 
-              end
-      @many ? links.map{ |link| link_response(link) } : link_response(link)
+      if @block
+        @block.call(serializer.model, serializer.context)
+      elsif serializer.respond_to?(relation)
+        serializer.send(relation)
+      else
+        @model_adapter.fetch(serializer.model, self) 
+      end
     end
 
     def link_response((id, type, href))

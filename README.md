@@ -26,10 +26,17 @@ Or install it yourself as:
 class MealSerializer < ActiveCerealizer::Resource
   attributes :id, :type, :href, :name, :time
 
-  links_many :food, polymorphic: true, required_for: [:create, :update]
-  links_one :beverage, required_for: [:create], allowed_for: [:update]
+  links_many :food do
+    polymorphic true
+    required_for :create, :update
+  end
+    
+  links_one :beverage do
+    required_for :create
+    allowed_for :update
+  end
 
-  url "/meals"
+  location "/meals"
 
   def time
     super unless context[:eater] == "David"
