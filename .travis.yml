@@ -13,5 +13,6 @@ matrix:
       jdk: openjdk7
     - rvm: 2.2.0
     - rvm: jruby-head
+      jdk: openjdk7
       
 script: bundle exec rake spec
