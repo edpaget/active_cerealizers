@@ -13,8 +13,8 @@ module ActiveCerealizer
       @permitted = opts[:permitted]
       @required = opts[:required]
       @key = opts[:key] || relation
-      @if = opts[:serialize_when]
-      @unless = opts[:serialize_when_not]
+      @if = opts[:if]
+      @unless = opts[:unless]
     end
 
     def as_schema_property(schema_links, action)

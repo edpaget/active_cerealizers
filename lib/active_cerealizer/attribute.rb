@@ -4,39 +4,29 @@ module ActiveCerealizer
   class Attribute
     include Serialized
     
-    attr_reader :field, :model_class, :type
+    attr_reader :field, :model_class, :type, :adapter
 
     alias :key :field
 
-    DEFAULTS = {
-      unless: nil,
-      if: nil,
-      array: false,
-      schema: nil,
-      required: false,
-      permitted: true
-    }
-
-    def initialize(field, model_class=nil, opts={}, &block)
+    def initialize(field, adapter, opts={})
       @field = field
-      @model_class = model_class
-      @type = (opts.delete(:type) || reflect_on_columns).to_sym
-      @unless, @if, @schema, @required, @permitted, @array = DEFAULTS.merge(opts)
-                                                             .values_at(:unless,
-                                                                        :if,
-                                                                        :schema,
-                                                                        :required,
-                                                                        :permitted,
-                                                                        :array)
-      @block = block
+      @adapter = adapter
+      @model_class = opts[:model_class]
+      @block = opts[:block]
+      @schema = opts[:schema]
+      @type = opts[:type] || adapter.field_type(model_class, field)
+      @permitted = opts[:permitted]
+      @required = opts[:required]
+      @if = opts[:if]
+      @unless = opts[:unless]
     end
 
     def as_schema_property(schema, action)
-      schema_type = @array ? :array : type
+      schema_type = type.is_a?(Array) ? :array : type
       proc = if @schema
                @schema
-             elsif @array
-               proc { items type: type }
+             elsif type.is_a?(Array)
+               proc { items type: type.first }
              end
       schema.add(schema_type, field, required: required?(action), &proc)
     end
@@ -47,18 +37,6 @@ module ActiveCerealizer
 
     private
     
-    def reflect_on_columns
-      col = model_class.columns.find{ |col| col.name == field.to_s }
-      if col.try(:array)
-        @array = true
-        col.type
-      elsif %i(json jsonb).include? col.type
-        :object 
-      else
-        col.type
-      end
-    end
-
     def fetch(serializer)
       if @block
         @block.call(serializer.model, serializer.context)

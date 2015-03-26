@@ -3,24 +3,25 @@ require 'active_cerealizer/attribute'
 
 RSpec.describe ActiveCerealizer::Attribute do
   let(:model_class) { Cereal }
-  let(:attribute) { described_class.new(:brand, model_class) }
+  let(:attribute) { described_class.new(:brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class) }
 
   describe "#initialize" do
     context "type is supplied" do
       it 'should set the model type' do
-        attribute = described_class.new(:brand, model_class, type: :string)
+        attribute = described_class.new(:brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class, type: :string)
         expect(attribute.type).to eq :string
       end
     end
 
     context 'when type is not supplied' do
-      it 'should use reflect_on_columns' do
-        expect_any_instance_of(described_class).to receive(:reflect_on_columns).and_return(:string)
-        described_class.new(:brand, model_class)
+      it 'should use adapter.field_type' do
+        adapter = ActiveCerealizer::Adapters::ActiveRecord
+        expect(adapter).to receive(:field_type).and_return(:string)
+        described_class.new(:brand, adapter, model_class: model_class)
       end
 
       it 'should return the type' do
-        attribute = described_class.new(:brand, model_class)
+        attribute = described_class.new(:brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class)
         expect(attribute.type).to eq :string
       end
     end
@@ -36,7 +37,7 @@ RSpec.describe ActiveCerealizer::Attribute do
 
     context "block given to attribute" do
       let(:attribute) do
-        described_class.new(:brand, model_class) { |m, c| m[:brand] + "!!" }
+        described_class.new(:brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class, block: -> (m, c) { m[:brand] + "!!"})
       end
 
       it 'should set the model attribute' do
@@ -70,7 +71,7 @@ RSpec.describe ActiveCerealizer::Attribute do
 
     context "when attribute is an array" do
       let(:attribute) do
-        described_class.new :brand, model_class, array: true
+        described_class.new :brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class, type: [:string]
       end
 
       it { is_expected.to receive(:add).with(:array, :brand, required: false) }
@@ -83,7 +84,7 @@ RSpec.describe ActiveCerealizer::Attribute do
 
     context "when a schema proc is passed" do
       let(:attribute) do
-        described_class.new :brand, model_class, schema: -> { pattern '^test' }
+        described_class.new :brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class, schema: -> { pattern '^test' }
       end
 
       it 'should send the schema proc' do
@@ -94,7 +95,7 @@ RSpec.describe ActiveCerealizer::Attribute do
     
     context "attribute is required for action" do
       let(:attribute) do
-        described_class.new :brand, model_class, required: :create
+        described_class.new :brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class, required: :create
       end
       
       it { is_expected.to receive(:add).with(:string, :brand, required: true) }
@@ -102,7 +103,7 @@ RSpec.describe ActiveCerealizer::Attribute do
 
     context "attribute is not required for action" do
       let(:attribute) do
-        described_class.new :brand, model_class, required: :update
+        described_class.new :brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class, required: :update
       end
       
       it { is_expected.to receive(:add).with(:string, :brand, required: false) }
@@ -110,7 +111,7 @@ RSpec.describe ActiveCerealizer::Attribute do
 
     context "attribute is required for all actions" do
       let(:attribute) do
-        described_class.new :brand, model_class, required: true
+        described_class.new :brand, ActiveCerealizer::Adapters::ActiveRecord, model_class: model_class, required: true
       end
       
       it { is_expected.to receive(:add).with(:string, :brand, required: true) }

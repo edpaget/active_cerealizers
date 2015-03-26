@@ -4,12 +4,16 @@ module Examples
   class CerealSerializer < ActiveCerealizer::Resource
     attributes :brand, :slogan
 
-    attribute :secret_formula, type: :object, if: :permitted? do
-      {
-        "High Fructose Corn Syrup" => "1 Part",
-        "Human Hair" => "2 Pars",
-        "Gluten" => "3 Parts"
-      }
+    attribute :secret_formula do
+      type :object
+      serialize_when :permitted?
+      fetch do
+        {
+          "High Fructose Corn Syrup" => "1 Part",
+          "Human Hair" => "2 Pars",
+          "Gluten" => "3 Parts"
+        }
+      end
     end
 
     links_many :meals

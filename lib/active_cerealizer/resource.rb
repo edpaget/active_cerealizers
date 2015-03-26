@@ -1,4 +1,5 @@
 require 'active_cerealizer/attribute'
+require 'active_cerealizer/attributes/dsl'
 require 'active_cerealizer/links/one'
 require 'active_cerealizer/links/many'
 require 'active_cerealizer/links/dsl'
@@ -33,7 +34,10 @@ module ActiveCerealizer
       
       def attribute(field, opts={}, &block)
         @attrs ||= []
-        @attrs.push(Attribute.new(field, model, **opts, &block))
+        opts[:model_class] ||= model
+        attr = Attributes::DSL.new(field, get_adapter(model), **opts)
+        attr = attr.run(&block)
+        @attrs.push attr.build
       end
 
       def attributes(*attrs)
@@ -46,14 +50,14 @@ module ActiveCerealizer
       def links_one(relation, klass=Links::One, &block)
         @links ||= []
         link = Links::DSL.new(relation, get_adapter(model), klass)
-        link = link.instance_exec(link, &block) if block_given?
+        link = link.run(&block)
         @links.push link.build
       end
 
       def links_many(relation, klass=Links::Many, &block)
         @links ||= []
         link = Links::DSL.new(relation, get_adapter(model), klass)
-        link = link.instance_exec(link, &block) if block_given?
+        link = link.run(&block)
         @links.push link.build
       end
 
