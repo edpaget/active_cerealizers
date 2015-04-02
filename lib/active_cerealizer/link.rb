@@ -1,57 +1,40 @@
-require 'active_cerealizer/serialized'
-
 module ActiveCerealizer
   class Link
-    include Serialized
-
-    attr_reader :key, :relation
+    attr_reader :key, :type, :include_linkage
     
-    def initialize(relation, adapter, opts={})
-      @relation = relation
-      @adapter = adapter
-      @block = opts[:block]
-      @permitted = opts[:permitted]
-      @required = opts[:required]
-      @key = opts[:key] || relation
-      @if = opts[:if]
-      @unless = opts[:unless]
+    def initialize(key, type: nil, include_linkage: true)
+      @key = key
+      @type = type || key.to_s.pluralize
+      @include_linkage = include_linkage
     end
 
-    def as_schema_property(schema_links, action)
-      raise NotImplementedError
-    end
-    
-    def serialize(serializer)
-      serializer.serialized[:links] ||= {}
-      serializer.serialized[:links][key] = fetch(serializer) if conditional?(serializer)
-    end
-
-    def polymorphic?
-      false
-    end
-      
-    private
-
-    def can_include?
-      !!@include
-    end
-
-    def fetch(serializer)
-      if @block
-        @block.call(serializer.model, serializer.context)
-      elsif serializer.respond_to?(relation)
-        serializer.send(relation)
-      else
-        @adapter.fetch(serializer.model, self) 
+    def modularize
+      k = key
+      Module.new do
+        define_method k do
+          @model.send(k)
+        end
       end
     end
 
-    def link_response(id)
-      id.to_s
+    def serialize(serializer, send_linkage=include_linkage)
+      l = links(serializer)
+      if send_linkage
+        l.merge({ linkage: linkage(serializer.send(key)) })
+      else
+        l
+      end
     end
-   
-    def linked_serializer(klass)
-      ActiveCerealizer.resource_for_model(klass)
+
+    def links(serializer)
+      {
+        self: serializer.self_link(key),
+        related: serializer.related_link(key) 
+      }
+    end
+
+    def linkage
+      raise NotImplementedError
     end
   end
 end
